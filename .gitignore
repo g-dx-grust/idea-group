@@ -1,0 +1,13 @@
+.DS_Store
+.claude/
+.vercel
+.next
+node_modules
+dist
+coverage
+.env
+.env.local
+.env.*.local
+data/idea-store.local.json
+*.log
+*.tsbuildinfo

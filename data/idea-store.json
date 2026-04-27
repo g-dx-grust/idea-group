@@ -1,0 +1,381 @@
+{
+  "users": [
+    {
+      "id": "user-kato",
+      "name": "加藤 和彦",
+      "role": "staff",
+      "department": "測量部"
+    },
+    {
+      "id": "user-sato",
+      "name": "佐藤 恵一",
+      "role": "staff",
+      "department": "登記部"
+    },
+    {
+      "id": "user-oike",
+      "name": "大池 浩司",
+      "role": "office",
+      "department": "事務"
+    },
+    {
+      "id": "user-admin",
+      "name": "管理者",
+      "role": "admin",
+      "department": "管理"
+    }
+  ],
+  "clients": [
+    {
+      "id": "client-sample",
+      "code": "C-001",
+      "name": "株式会社サンプル不動産",
+      "address": "名古屋市中区栄三丁目15番1号",
+      "tel": "052-000-0001",
+      "fax": "052-000-0002",
+      "email": "info@example.jp",
+      "contactName": "山田 太郎",
+      "paymentTerms": "月末締め翌月末払い"
+    },
+    {
+      "id": "client-koide",
+      "code": "C-003",
+      "name": "小出 恵子",
+      "address": "名古屋市中村区塩池町二丁目148番",
+      "tel": "052-000-0020",
+      "contactName": "小出 恵子"
+    }
+  ],
+  "unitPrices": [
+    {
+      "id": "unit-1",
+      "categoryCode": "survey_confirmed",
+      "section": "investigation",
+      "itemName": "公課証明",
+      "unitPrice": 1000,
+      "unit": "通"
+    },
+    {
+      "id": "unit-2",
+      "categoryCode": "survey_confirmed",
+      "section": "investigation",
+      "itemName": "多角測量",
+      "unitPrice": 18900,
+      "unit": "筆"
+    },
+    {
+      "id": "unit-3",
+      "categoryCode": "survey_confirmed",
+      "section": "survey",
+      "itemName": "境界標設置・移設",
+      "unitPrice": 11100,
+      "unit": "点"
+    },
+    {
+      "id": "unit-4",
+      "categoryCode": "survey_confirmed",
+      "section": "document",
+      "itemName": "土地証明書・承諾書",
+      "unitPrice": 4800,
+      "unit": "通"
+    },
+    {
+      "id": "unit-5",
+      "categoryCode": "survey_confirmed",
+      "section": "document",
+      "itemName": "土地成果図",
+      "unitPrice": 5000,
+      "unit": "通"
+    }
+  ],
+  "cases": [
+    {
+      "id": "case-26-0185",
+      "jutakuNo": "26-0185",
+      "cadNo": "CAD-1042",
+      "title": "筆界確定測量業務",
+      "address": "名古屋市中村区塩池町二丁目148番",
+      "clientId": "client-koide",
+      "clientContactName": "小出 恵子",
+      "clientTel": "052-000-0020",
+      "designerUserId": "user-oike",
+      "surveyorUserId": "user-kato",
+      "registrarUserId": "user-sato",
+      "businessTypes": [
+        "confirmed_survey",
+        "land_registration"
+      ],
+      "status": "in_progress",
+      "deadline": "2026-05-20",
+      "folderPath": "idea/26-0185",
+      "boxNoSurvey": "測-26-12",
+      "specialNote": "現地立会の日程調整中。",
+      "confirmedSurvey": {
+        "acceptedDate": "2026-04-01",
+        "houmuInvestDate": "2026-04-06",
+        "cityInvestDate": "2026-04-08",
+        "stampRequestDate": "2026-04-15",
+        "officialApplicationDate": "2026-04-22"
+      },
+      "subdivisionSurvey": {},
+      "lands": [
+        {
+          "id": "land-1",
+          "address": "名古屋市中村区塩池町二丁目",
+          "chiban": "148",
+          "chimoku": "宅地",
+          "chiseki": 241,
+          "inputDate": "2026-04-06",
+          "owners": [
+            {
+              "id": "owner-1",
+              "name": "小出 恵子",
+              "address": "名古屋市中村区塩池町二丁目148番",
+              "share": "全部"
+            }
+          ]
+        }
+      ],
+      "siteVisits": [
+        {
+          "id": "site-visit-1",
+          "appliedTo": "nagoya_city",
+          "surveyorUserId": "user-kato",
+          "houmuInvestDate": "2026-04-06",
+          "inputDate": "2026-04-23",
+          "routeNames": [
+            "市道塩池線"
+          ],
+          "landIds": [
+            "land-1"
+          ],
+          "generatedDocumentCount": 0
+        }
+      ],
+      "rewards": [
+        {
+          "id": "reward-1",
+          "businessName": "筆界確定測量業務",
+          "address": "名古屋市中村区塩池町二丁目148番",
+          "recipientName": "小出 恵子",
+          "formVersion": "new",
+          "estimateDate": "2026-04-01",
+          "invoiceDate": "",
+          "requireSend": true,
+          "taxRate": 10,
+          "taxRounding": "floor",
+          "details": [
+            {
+              "id": "detail-1",
+              "section": "investigation",
+              "itemName": "公課証明",
+              "unitPrice": 1000,
+              "quantity": 7,
+              "unit": "通",
+              "rate": 100,
+              "amount": 7000
+            },
+            {
+              "id": "detail-2",
+              "section": "investigation",
+              "itemName": "多角測量",
+              "unitPrice": 18900,
+              "quantity": 2,
+              "unit": "筆",
+              "rate": 100,
+              "amount": 37800
+            },
+            {
+              "id": "detail-3",
+              "section": "survey",
+              "itemName": "境界標設置・移設",
+              "unitPrice": 11100,
+              "quantity": 4,
+              "unit": "点",
+              "rate": 90,
+              "amount": 39960
+            },
+            {
+              "id": "detail-4",
+              "section": "document",
+              "itemName": "土地証明書・承諾書",
+              "unitPrice": 4800,
+              "quantity": 2,
+              "unit": "通",
+              "rate": 100,
+              "amount": 9600
+            },
+            {
+              "id": "detail-5",
+              "section": "document",
+              "itemName": "土地成果図",
+              "unitPrice": 5000,
+              "quantity": 1,
+              "unit": "通",
+              "rate": 100,
+              "amount": 5000
+            }
+          ],
+          "note": "地積更正登記は別途見積。",
+          "subtotal1": 44800,
+          "subtotal2": 39960,
+          "subtotal3": 0,
+          "subtotal4": 14600,
+          "totalReward": 99360,
+          "adjustAmount": 0,
+          "netReward": 99360,
+          "miscExpense": 10000,
+          "taxBase": 109360,
+          "taxAmount": 10936,
+          "stampCost": 5000,
+          "total": 125296,
+          "createdAt": "2026-04-25T07:40:52.592Z",
+          "updatedAt": "2026-04-25T07:40:52.592Z"
+        }
+      ],
+      "createdAt": "2026-04-01T09:00:00.000Z",
+      "updatedAt": "2026-04-25T07:40:52.592Z"
+    },
+    {
+      "id": "case-26-0148",
+      "jutakuNo": "26-0148",
+      "title": "土地登記申請業務",
+      "address": "名古屋市北区芦辺町三丁目",
+      "clientId": "client-sample",
+      "clientContactName": "山田 太郎",
+      "surveyorUserId": "user-kato",
+      "registrarUserId": "user-sato",
+      "businessTypes": [
+        "land_registration"
+      ],
+      "status": "invoiced",
+      "deadline": "2026-05-02",
+      "confirmedSurvey": {},
+      "subdivisionSurvey": {},
+      "lands": [],
+      "siteVisits": [],
+      "rewards": [
+        {
+          "id": "99917917-a690-4bf3-a488-b202a0f37156",
+          "businessName": "土地登記申請業務",
+          "address": "名古屋市北区芦辺町三丁目",
+          "recipientName": "山田 太郎",
+          "formVersion": "new",
+          "requireSend": false,
+          "taxRate": 10,
+          "taxRounding": "floor",
+          "details": [
+            {
+              "id": "37565bf3-846d-473f-be85-c8c7889f0710",
+              "section": "investigation",
+              "itemName": "公課証明",
+              "unitPrice": 1000,
+              "quantity": 1,
+              "unit": "通",
+              "rate": 100,
+              "amount": 1000
+            },
+            {
+              "id": "90a08193-f826-4060-b6aa-31f27e54616f",
+              "section": "investigation",
+              "itemName": "多角測量",
+              "unitPrice": 18900,
+              "quantity": 1,
+              "unit": "筆",
+              "rate": 100,
+              "amount": 18900
+            },
+            {
+              "id": "b9f729d4-9d98-4f31-8b0a-ae1f3a44b4f1",
+              "section": "survey",
+              "itemName": "境界標設置・移設",
+              "unitPrice": 11100,
+              "quantity": 1,
+              "unit": "点",
+              "rate": 100,
+              "amount": 11100
+            },
+            {
+              "id": "aae93063-8506-4eae-b310-0214d97e7abe",
+              "section": "document",
+              "itemName": "土地証明書・承諾書",
+              "unitPrice": 4800,
+              "quantity": 1,
+              "unit": "通",
+              "rate": 100,
+              "amount": 4800
+            },
+            {
+              "id": "0846a0d9-66ce-40be-87b9-efff263292ca",
+              "section": "document",
+              "itemName": "土地成果図",
+              "unitPrice": 5000,
+              "quantity": 1,
+              "unit": "通",
+              "rate": 100,
+              "amount": 5000
+            }
+          ],
+          "subtotal1": 19900,
+          "subtotal2": 11100,
+          "subtotal3": 0,
+          "subtotal4": 9800,
+          "totalReward": 40800,
+          "adjustAmount": 0,
+          "netReward": 40800,
+          "miscExpense": 0,
+          "taxBase": 40800,
+          "taxAmount": 4080,
+          "stampCost": 0,
+          "total": 44880,
+          "createdAt": "2026-04-25T08:03:43.233Z",
+          "updatedAt": "2026-04-25T08:03:43.233Z"
+        }
+      ],
+      "createdAt": "2026-04-10T09:00:00.000Z",
+      "updatedAt": "2026-04-25T08:03:43.233Z"
+    }
+  ],
+  "auditLogs": [
+    {
+      "id": "dd9cb947-65ba-41fa-a16c-4c14bc7e6d36",
+      "targetType": "reward",
+      "targetId": "99917917-a690-4bf3-a488-b202a0f37156",
+      "action": "create",
+      "message": "26-0148の報酬額計算書を保存しました。",
+      "createdAt": "2026-04-25T08:03:43.233Z"
+    },
+    {
+      "id": "bc7710ff-e489-40fb-bf83-fb9fa3e4a39c",
+      "targetType": "case",
+      "targetId": "case-26-0185",
+      "action": "seed",
+      "message": "初期データを作成しました。",
+      "createdAt": "2026-04-25T07:40:52.593Z"
+    },
+    {
+      "id": "33cb8daf-8be6-4913-8db1-890f3a1d31fd",
+      "targetType": "case",
+      "targetId": "case-26-0148",
+      "action": "seed",
+      "message": "初期データを作成しました。",
+      "createdAt": "2026-04-25T07:40:52.593Z"
+    }
+  ],
+  "calendarEvents": [
+    {
+      "id": "event-site-visit-1",
+      "caseId": "case-26-0185",
+      "userId": "user-kato",
+      "type": "field_survey",
+      "status": "done",
+      "title": "法務局調査",
+      "date": "2026-04-06",
+      "location": "名古屋市中村区塩池町二丁目148番",
+      "sourceType": "site_visit",
+      "sourceId": "site-visit-1",
+      "createdAt": "2026-04-01T09:00:00.000Z",
+      "updatedAt": "2026-04-25T07:40:52.592Z"
+    }
+  ]
+}
