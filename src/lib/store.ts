@@ -302,6 +302,59 @@ export async function addLand(caseId: string, input: {
   return land;
 }
 
+export async function updateLand(caseId: string, landId: string, input: {
+  fudoNo?: string;
+  address: string;
+  chiban: string;
+  edaban?: string;
+  chimoku?: string;
+  chiseki?: number;
+  inputDate?: string;
+  ownerName?: string;
+  ownerAddress?: string;
+  ownerShare?: string;
+  ownerPostalCode?: string;
+  ownerTel?: string;
+}) {
+  const store = await loadStore();
+  const caseRow = requireCase(store, caseId);
+  const land = caseRow.lands.find((item) => item.id === landId);
+  if (!land) throw new Error('対象の土地が見つかりません。');
+  land.fudoNo = emptyToUndefined(input.fudoNo);
+  land.address = input.address;
+  land.chiban = input.chiban;
+  land.edaban = emptyToUndefined(input.edaban);
+  land.chimoku = emptyToUndefined(input.chimoku);
+  land.chiseki = input.chiseki;
+  land.inputDate = emptyToUndefined(input.inputDate) ?? land.inputDate;
+  if (input.ownerName) {
+    const existing = land.owners[0];
+    if (existing) {
+      existing.name = input.ownerName;
+      existing.address = input.ownerAddress ?? '';
+      existing.share = emptyToUndefined(input.ownerShare);
+      existing.postalCode = emptyToUndefined(input.ownerPostalCode);
+      existing.tel = emptyToUndefined(input.ownerTel);
+      land.owners = [existing, ...land.owners.slice(1)];
+    } else {
+      land.owners = [{
+        id: randomUUID(),
+        name: input.ownerName,
+        address: input.ownerAddress ?? '',
+        share: emptyToUndefined(input.ownerShare),
+        postalCode: emptyToUndefined(input.ownerPostalCode),
+        tel: emptyToUndefined(input.ownerTel),
+      }];
+    }
+  } else {
+    land.owners = [];
+  }
+  touchCase(caseRow);
+  store.auditLogs.unshift(createAudit('land', land.id, 'update', `${caseRow.jutakuNo}の土地を更新しました。`));
+  await saveStore(store);
+  return land;
+}
+
 export async function addSiteVisit(caseId: string, input: {
   appliedTo: SiteVisitRequest['appliedTo'];
   appliedToName?: string;

@@ -13,6 +13,7 @@ import {
   saveRewardAction,
   updateCaseSummaryAction,
   updateConfirmedSurveyAction,
+  updateLandAction,
   updateSubdivisionSurveyAction,
 } from '@/lib/actions';
 import { businessTypeLabels, calendarEventStatusLabels, calendarEventTypeLabels, rewardSectionLabels, siteVisitAppliedToLabels, statusLabels } from '@/lib/labels';
@@ -237,25 +238,58 @@ function LandsTab({ caseRow }: { caseRow: CaseRecord }) {
                 <th>持分</th>
                 <th>氏名商号</th>
                 <th>住所</th>
+                <th>操作</th>
               </tr>
             </thead>
             <tbody>
-              {caseRow.lands.map((land) => (
-                <tr key={land.id}>
-                  <td>{land.address}</td>
-                  <td className="mono">{land.chiban}</td>
-                  <td className="mono">{land.edaban ?? '-'}</td>
-                  <td>{land.chimoku ?? '-'}</td>
-                  <td className="mono">{formatArea(land.chiseki)}</td>
-                  <td className="mono">{land.inputDate ?? '-'}</td>
-                  <td>{joinOwnerValues(land.owners, 'share')}</td>
-                  <td>{joinOwnerValues(land.owners, 'name')}</td>
-                  <td>{joinOwnerValues(land.owners, 'address')}</td>
-                </tr>
-              ))}
+              {caseRow.lands.map((land) => {
+                const owner = land.owners[0];
+                return (
+                  <tr key={land.id}>
+                    <td>{land.address}</td>
+                    <td className="mono">{land.chiban}</td>
+                    <td className="mono">{land.edaban ?? '-'}</td>
+                    <td>{land.chimoku ?? '-'}</td>
+                    <td className="mono">{formatArea(land.chiseki)}</td>
+                    <td className="mono">{land.inputDate ?? '-'}</td>
+                    <td>{joinOwnerValues(land.owners, 'share')}</td>
+                    <td>{joinOwnerValues(land.owners, 'name')}</td>
+                    <td>{joinOwnerValues(land.owners, 'address')}</td>
+                    <td>
+                      <ModalForm
+                        title="土地を編集する"
+                        triggerLabel="編集する"
+                        triggerVariant="secondary"
+                      >
+                        <form action={updateLandAction.bind(null, caseRow.id, land.id)} className="modal-form">
+                          <div className="grid gap-4 md:grid-cols-2">
+                            <Field label="不動産番号" name="fudoNo" value={land.fudoNo} />
+                            <Field label="所在" name="address" required value={land.address} />
+                            <Field label="地番" name="chiban" required value={land.chiban} />
+                            <Field label="枝番" name="edaban" value={land.edaban} />
+                            <Field label="地目" name="chimoku" value={land.chimoku} />
+                            <Field label="地積(m²)" name="chiseki" type="number" value={land.chiseki !== undefined ? String(land.chiseki) : undefined} />
+                            <Field label="入力日" name="inputDate" type="date" value={land.inputDate} />
+                            <Field label="所有者名" name="ownerName" value={owner?.name} />
+                            <Field label="所有者住所" name="ownerAddress" value={owner?.address} />
+                            <Field label="持分" name="ownerShare" value={owner?.share} />
+                            <Field label="所有者郵便番号" name="ownerPostalCode" value={owner?.postalCode} />
+                            <Field label="所有者電話番号" name="ownerTel" value={owner?.tel} />
+                          </div>
+                          <div className="modal-actions">
+                            <button type="submit" className="button button-primary">
+                              更新する
+                            </button>
+                          </div>
+                        </form>
+                      </ModalForm>
+                    </td>
+                  </tr>
+                );
+              })}
               {caseRow.lands.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="muted text-center">
+                  <td colSpan={10} className="muted text-center">
                     土地明細はまだありません。
                   </td>
                 </tr>

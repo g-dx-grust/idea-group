@@ -6,6 +6,7 @@ import { z } from 'zod';
 import {
   createCalendarEvent,
   addLand,
+  updateLand,
   addSiteVisit,
   createCase,
   isCalendarEventStatus,
@@ -73,6 +74,24 @@ export async function updateSubdivisionSurveyAction(caseId: string, formData: Fo
 
 export async function addLandAction(caseId: string, formData: FormData) {
   await addLand(caseId, {
+    fudoNo: stringValue(formData, 'fudoNo'),
+    address: requiredString(formData, 'address'),
+    chiban: requiredString(formData, 'chiban'),
+    edaban: stringValue(formData, 'edaban'),
+    chimoku: stringValue(formData, 'chimoku'),
+    chiseki: numberValue(formData, 'chiseki'),
+    inputDate: stringValue(formData, 'inputDate'),
+    ownerName: stringValue(formData, 'ownerName'),
+    ownerAddress: stringValue(formData, 'ownerAddress'),
+    ownerShare: stringValue(formData, 'ownerShare'),
+    ownerPostalCode: stringValue(formData, 'ownerPostalCode'),
+    ownerTel: stringValue(formData, 'ownerTel'),
+  });
+  revalidatePath(`/cases/${caseId}`);
+}
+
+export async function updateLandAction(caseId: string, landId: string, formData: FormData) {
+  await updateLand(caseId, landId, {
     fudoNo: stringValue(formData, 'fudoNo'),
     address: requiredString(formData, 'address'),
     chiban: requiredString(formData, 'chiban'),
