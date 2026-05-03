@@ -5,15 +5,23 @@ import { BusinessBadges } from '@/components/cases/BusinessBadges';
 import { CaseTabs } from '@/components/cases/CaseTabs';
 import { StatusBadge } from '@/components/cases/StatusBadge';
 import { RewardSummary } from '@/components/rewards/RewardSummary';
+import { DeleteButton } from '@/components/ui/DeleteButton';
 import { ModalForm } from '@/components/ui/ModalForm';
 import {
   addCaseCalendarEventAction,
   addLandAction,
   addSiteVisitAction,
+  deleteCalendarEventAction,
+  deleteCaseAction,
+  deleteLandAction,
+  deleteRewardAction,
+  deleteSiteVisitAction,
   saveRewardAction,
+  updateCalendarEventAction,
   updateCaseSummaryAction,
   updateConfirmedSurveyAction,
   updateLandAction,
+  updateSiteVisitAction,
   updateSubdivisionSurveyAction,
 } from '@/lib/actions';
 import { businessTypeLabels, calendarEventStatusLabels, calendarEventTypeLabels, rewardSectionLabels, siteVisitAppliedToLabels, statusLabels } from '@/lib/labels';
@@ -88,6 +96,12 @@ export default async function CaseDetailPage({ params, searchParams }: Props) {
                 <FileText className="h-4 w-4" />
                 報酬計算へ進む
               </Link>
+              <DeleteButton
+                action={deleteCaseAction.bind(null, caseRow.id)}
+                confirmMessage={`現場 ${caseRow.jutakuNo} を削除します。土地・立会申請・報酬書・予定もすべて削除されます。よろしいですか？`}
+                label="現場を削除する"
+                showIcon
+              />
             </div>
           </div>
         </div>
@@ -256,33 +270,40 @@ function LandsTab({ caseRow }: { caseRow: CaseRecord }) {
                     <td>{joinOwnerValues(land.owners, 'name')}</td>
                     <td>{joinOwnerValues(land.owners, 'address')}</td>
                     <td>
-                      <ModalForm
-                        title="土地を編集する"
-                        triggerLabel="編集する"
-                        triggerVariant="secondary"
-                      >
-                        <form action={updateLandAction.bind(null, caseRow.id, land.id)} className="modal-form">
-                          <div className="grid gap-4 md:grid-cols-2">
-                            <Field label="不動産番号" name="fudoNo" value={land.fudoNo} />
-                            <Field label="所在" name="address" required value={land.address} />
-                            <Field label="地番" name="chiban" required value={land.chiban} />
-                            <Field label="枝番" name="edaban" value={land.edaban} />
-                            <Field label="地目" name="chimoku" value={land.chimoku} />
-                            <Field label="地積(m²)" name="chiseki" type="number" value={land.chiseki !== undefined ? String(land.chiseki) : undefined} />
-                            <Field label="入力日" name="inputDate" type="date" value={land.inputDate} />
-                            <Field label="所有者名" name="ownerName" value={owner?.name} />
-                            <Field label="所有者住所" name="ownerAddress" value={owner?.address} />
-                            <Field label="持分" name="ownerShare" value={owner?.share} />
-                            <Field label="所有者郵便番号" name="ownerPostalCode" value={owner?.postalCode} />
-                            <Field label="所有者電話番号" name="ownerTel" value={owner?.tel} />
-                          </div>
-                          <div className="modal-actions">
-                            <button type="submit" className="button button-primary">
-                              更新する
-                            </button>
-                          </div>
-                        </form>
-                      </ModalForm>
+                      <div className="flex flex-wrap gap-[var(--space-xs)]">
+                        <ModalForm
+                          title="土地を編集する"
+                          triggerLabel="編集する"
+                          triggerVariant="secondary"
+                        >
+                          <form action={updateLandAction.bind(null, caseRow.id, land.id)} className="modal-form">
+                            <div className="grid gap-4 md:grid-cols-2">
+                              <Field label="不動産番号" name="fudoNo" value={land.fudoNo} />
+                              <Field label="所在" name="address" required value={land.address} />
+                              <Field label="地番" name="chiban" required value={land.chiban} />
+                              <Field label="枝番" name="edaban" value={land.edaban} />
+                              <Field label="地目" name="chimoku" value={land.chimoku} />
+                              <Field label="地積(m²)" name="chiseki" type="number" value={land.chiseki !== undefined ? String(land.chiseki) : undefined} />
+                              <Field label="入力日" name="inputDate" type="date" value={land.inputDate} />
+                              <Field label="所有者名" name="ownerName" value={owner?.name} />
+                              <Field label="所有者住所" name="ownerAddress" value={owner?.address} />
+                              <Field label="持分" name="ownerShare" value={owner?.share} />
+                              <Field label="所有者郵便番号" name="ownerPostalCode" value={owner?.postalCode} />
+                              <Field label="所有者電話番号" name="ownerTel" value={owner?.tel} />
+                            </div>
+                            <div className="modal-actions">
+                              <button type="submit" className="button button-primary">
+                                更新する
+                              </button>
+                            </div>
+                          </form>
+                        </ModalForm>
+                        <DeleteButton
+                          action={deleteLandAction.bind(null, caseRow.id, land.id)}
+                          confirmMessage={`地番 ${land.chiban}${land.edaban ? `-${land.edaban}` : ''} を削除します。よろしいですか？`}
+                          label="削除する"
+                        />
+                      </div>
                     </td>
                   </tr>
                 );
@@ -374,6 +395,7 @@ function SiteVisitsTab({ caseRow, users, calendarEvents }: { caseRow: CaseRecord
                 <th>種別</th>
                 <th>件名</th>
                 <th>状態</th>
+                <th>操作</th>
               </tr>
             </thead>
             <tbody>
@@ -388,11 +410,71 @@ function SiteVisitsTab({ caseRow, users, calendarEvents }: { caseRow: CaseRecord
                     <div className="muted text-[length:var(--font-s)]">{event.location ?? caseRow.address}</div>
                   </td>
                   <td>{calendarEventStatusLabels[event.status]}</td>
+                  <td>
+                    <div className="flex flex-wrap gap-[var(--space-xs)]">
+                      <ModalForm title="訪問予定を編集する" triggerLabel="編集する" triggerVariant="secondary">
+                        <form action={updateCalendarEventAction.bind(null, event.id)} className="modal-form">
+                          <input type="hidden" name="caseId" value={caseRow.id} />
+                          <div className="grid gap-4 md:grid-cols-2">
+                            <Field label="予定日" name="date" type="date" required value={event.date} />
+                            <label className="grid gap-2">
+                              <span className="field-label">担当者</span>
+                              <select name="userId" className="control" defaultValue={event.userId}>
+                                {users.map((user) => (
+                                  <option key={user.id} value={user.id}>
+                                    {user.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                            <Field label="開始時刻" name="startTime" type="time" value={event.startTime} />
+                            <Field label="終了時刻" name="endTime" type="time" value={event.endTime} />
+                            <label className="grid gap-2">
+                              <span className="field-label">種別</span>
+                              <select name="type" className="control" defaultValue={event.type}>
+                                {calendarEventTypes.map((type) => (
+                                  <option key={type} value={type}>
+                                    {calendarEventTypeLabels[type]}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                            <label className="grid gap-2">
+                              <span className="field-label">状態</span>
+                              <select name="status" className="control" defaultValue={event.status}>
+                                {calendarEventStatuses.map((status) => (
+                                  <option key={status} value={status}>
+                                    {calendarEventStatusLabels[status]}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                            <Field label="件名" name="title" value={event.title} />
+                            <Field label="場所" name="location" value={event.location} />
+                          </div>
+                          <label className="grid gap-2">
+                            <span className="field-label">備考</span>
+                            <textarea name="note" className="control min-h-24" defaultValue={event.note ?? ''} />
+                          </label>
+                          <div className="modal-actions">
+                            <button type="submit" className="button button-primary">
+                              更新する
+                            </button>
+                          </div>
+                        </form>
+                      </ModalForm>
+                      <DeleteButton
+                        action={deleteCalendarEventAction.bind(null, event.id, caseRow.id)}
+                        confirmMessage={`${formatDate(event.date)} の予定「${event.title}」を削除します。よろしいですか？`}
+                        label="削除する"
+                      />
+                    </div>
+                  </td>
                 </tr>
               ))}
               {calendarEvents.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="muted text-center">
+                  <td colSpan={7} className="muted text-center">
                     訪問予定はまだありません。
                   </td>
                 </tr>
@@ -477,24 +559,101 @@ function SiteVisitsTab({ caseRow, users, calendarEvents }: { caseRow: CaseRecord
                 <th>土地件数</th>
                 <th>帳票</th>
                 <th>入力日</th>
+                <th>操作</th>
               </tr>
             </thead>
             <tbody>
-              {caseRow.siteVisits.map((siteVisit) => (
-                <tr key={siteVisit.id}>
-                  <td>{siteVisitAppliedToLabels[siteVisit.appliedTo]}{siteVisit.appliedToName ? `（${siteVisit.appliedToName}）` : ''}</td>
-                  <td>{userName(users, siteVisit.surveyorUserId)}</td>
-                  <td className="mono">{siteVisit.houmuInvestDate ?? '-'}</td>
-                  <td>{siteVisit.routeNames.join(' / ') || '-'}</td>
-                  <td>{siteVisitLandSummary(caseRow.lands, siteVisit.landIds)}</td>
-                  <td className="mono">{siteVisit.landIds.length}件</td>
-                  <td>{siteVisit.generatedDocumentCount}件生成済み</td>
-                  <td className="mono">{siteVisit.inputDate}</td>
-                </tr>
-              ))}
+              {caseRow.siteVisits.map((siteVisit) => {
+                const routes = ['', '', '', ''].map((_, index) => siteVisit.routeNames[index] ?? '');
+                return (
+                  <tr key={siteVisit.id}>
+                    <td>{siteVisitAppliedToLabels[siteVisit.appliedTo]}{siteVisit.appliedToName ? `（${siteVisit.appliedToName}）` : ''}</td>
+                    <td>{userName(users, siteVisit.surveyorUserId)}</td>
+                    <td className="mono">{siteVisit.houmuInvestDate ?? '-'}</td>
+                    <td>{siteVisit.routeNames.join(' / ') || '-'}</td>
+                    <td>{siteVisitLandSummary(caseRow.lands, siteVisit.landIds)}</td>
+                    <td className="mono">{siteVisit.landIds.length}件</td>
+                    <td>{siteVisit.generatedDocumentCount}件生成済み</td>
+                    <td className="mono">{siteVisit.inputDate}</td>
+                    <td>
+                      <div className="flex flex-wrap gap-[var(--space-xs)]">
+                        <ModalForm title="立会申請を編集する" triggerLabel="編集する" triggerVariant="secondary">
+                          <form action={updateSiteVisitAction.bind(null, caseRow.id, siteVisit.id)} className="modal-form">
+                            <div className="grid gap-4 md:grid-cols-2">
+                              <label className="grid gap-2">
+                                <span className="field-label">申請先</span>
+                                <select name="appliedTo" className="control" defaultValue={siteVisit.appliedTo}>
+                                  {Object.entries(siteVisitAppliedToLabels).map(([value, label]) => (
+                                    <option key={value} value={value}>
+                                      {label}
+                                    </option>
+                                  ))}
+                                </select>
+                              </label>
+                              <Field label="申請先（その他）" name="appliedToName" value={siteVisit.appliedToName} />
+                              <label className="grid gap-2">
+                                <span className="field-label">調査士</span>
+                                <select name="surveyorUserId" className="control" defaultValue={siteVisit.surveyorUserId}>
+                                  {users.map((user) => (
+                                    <option key={user.id} value={user.id}>
+                                      {user.name}
+                                    </option>
+                                  ))}
+                                </select>
+                              </label>
+                              <Field label="法務局調査日" name="houmuInvestDate" type="date" value={siteVisit.houmuInvestDate} />
+                              <Field label="路線名1" name="route1" value={routes[0]} />
+                              <Field label="路線名2" name="route2" value={routes[1]} />
+                              <Field label="路線名3" name="route3" value={routes[2]} />
+                              <Field label="路線名4" name="route4" value={routes[3]} />
+                              <label className="grid gap-2">
+                                <span className="field-label">並び順</span>
+                                <select name="sortMode" className="control" defaultValue={siteVisit.sortMode ?? 'input'}>
+                                  <option value="input">入力順</option>
+                                  <option value="chiban">地番順</option>
+                                </select>
+                              </label>
+                            </div>
+                            <div>
+                              <div className="field-label mb-2">対象土地</div>
+                              <div className="grid gap-3 md:grid-cols-2">
+                                {caseRow.lands.map((land) => (
+                                  <label key={land.id} className="flex min-h-11 items-center gap-3 rounded-[var(--radius-m)] border border-[var(--color-border)] p-3">
+                                    <input
+                                      type="checkbox"
+                                      name="landIds"
+                                      value={land.id}
+                                      defaultChecked={siteVisit.landIds.includes(land.id)}
+                                    />
+                                    <span>{landLabel(land)}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
+                            <label className="grid gap-2">
+                              <span className="field-label">備考</span>
+                              <textarea name="note" className="control min-h-24" defaultValue={siteVisit.note ?? ''} />
+                            </label>
+                            <div className="modal-actions">
+                              <button type="submit" className="button button-primary">
+                                更新する
+                              </button>
+                            </div>
+                          </form>
+                        </ModalForm>
+                        <DeleteButton
+                          action={deleteSiteVisitAction.bind(null, caseRow.id, siteVisit.id)}
+                          confirmMessage={`${siteVisitAppliedToLabels[siteVisit.appliedTo]} の立会申請を削除します。よろしいですか？`}
+                          label="削除する"
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
               {caseRow.siteVisits.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="muted text-center">
+                  <td colSpan={9} className="muted text-center">
                     立会申請はまだありません。
                   </td>
                 </tr>
@@ -608,11 +767,19 @@ function RewardsTab({ caseRow, unitPrices }: { caseRow: CaseRecord; unitPrices: 
         <section className="panel p-6">
           <h3 className="section-title mb-3">発行済み文書</h3>
           {caseRow.rewards.map((reward) => (
-            <div key={reward.id} className="border-b border-[var(--color-border)] py-[var(--space-s)] last:border-b-0">
-              <div className="font-medium">{reward.businessName}</div>
-              <div className="mono">{formatCurrency(reward.total)}</div>
+            <div key={reward.id} className="flex items-start justify-between gap-[var(--space-s)] border-b border-[var(--color-border)] py-[var(--space-s)] last:border-b-0">
+              <div>
+                <div className="font-medium">{reward.businessName}</div>
+                <div className="mono">{formatCurrency(reward.total)}</div>
+              </div>
+              <DeleteButton
+                action={deleteRewardAction.bind(null, caseRow.id, reward.id)}
+                confirmMessage={`報酬書「${reward.businessName}」を削除します。よろしいですか？`}
+                label="削除する"
+              />
             </div>
           ))}
+          {caseRow.rewards.length === 0 && <div className="muted">まだ保存されていません。</div>}
         </section>
       </aside>
     </div>

@@ -234,7 +234,7 @@
         }
       ],
       "createdAt": "2026-04-01T09:00:00.000Z",
-      "updatedAt": "2026-04-25T07:40:52.592Z"
+      "updatedAt": "2026-05-03T10:26:17.239Z"
     },
     {
       "id": "case-26-0148",
@@ -338,6 +338,22 @@
   ],
   "auditLogs": [
     {
+      "id": "8b32465a-86bd-4a14-80a8-ea9eb67b0853",
+      "targetType": "calendar_event",
+      "targetId": "cd28a881-42c6-439a-81c2-21156b9c5ddb",
+      "action": "create",
+      "message": "案件なしの予定を作成しました。",
+      "createdAt": "2026-05-03T11:03:43.303Z"
+    },
+    {
+      "id": "25dd0ad4-cdff-4d1c-a07b-ebf4e2a0de34",
+      "targetType": "calendar_event",
+      "targetId": "750ba9b1-6aff-489b-ad77-84e7bd225de6",
+      "action": "create",
+      "message": "26-0185の訪問予定を作成しました。",
+      "createdAt": "2026-05-03T10:26:17.239Z"
+    },
+    {
       "id": "dd9cb947-65ba-41fa-a16c-4c14bc7e6d36",
       "targetType": "reward",
       "targetId": "99917917-a690-4bf3-a488-b202a0f37156",
@@ -363,6 +379,30 @@
     }
   ],
   "calendarEvents": [
+    {
+      "id": "cd28a881-42c6-439a-81c2-21156b9c5ddb",
+      "userId": "user-sato",
+      "type": "site_visit",
+      "status": "scheduled",
+      "title": "現地訪問",
+      "date": "2026-05-03",
+      "sourceType": "calendar",
+      "createdAt": "2026-05-03T11:03:43.303Z",
+      "updatedAt": "2026-05-03T11:03:43.303Z"
+    },
+    {
+      "id": "750ba9b1-6aff-489b-ad77-84e7bd225de6",
+      "caseId": "case-26-0185",
+      "userId": "user-kato",
+      "type": "site_visit",
+      "status": "scheduled",
+      "title": "現地訪問",
+      "date": "2026-05-03",
+      "location": "名古屋市中村区塩池町二丁目148番",
+      "sourceType": "calendar",
+      "createdAt": "2026-05-03T10:26:17.239Z",
+      "updatedAt": "2026-05-03T10:26:17.239Z"
+    },
     {
       "id": "event-site-visit-1",
       "caseId": "case-26-0185",

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, ListFilter } from 'lucide-react';
-import { CalendarEventDialogProvider, CalendarEventDialogTrigger } from '@/components/calendar/CalendarEventDialog';
+import { CalendarEventDialogProvider, CalendarEventDialogTrigger, CalendarEventEditTrigger } from '@/components/calendar/CalendarEventDialog';
 import { calendarEventStatusLabels, calendarEventTypeLabels } from '@/lib/labels';
 import { getStore, listCalendarEvents } from '@/lib/store';
 import { calendarEventStatuses, calendarEventTypes, type CalendarEvent, type CaseRecord, type User } from '@/lib/types';
@@ -228,7 +228,7 @@ export default async function CalendarPage({ searchParams }: Props) {
                           />
                           <div className="calendar-event-stack">
                             {dayEvents.map((event) => (
-                              <CalendarEventLink key={event.id} event={event} caseRow={casesById.get(event.caseId)} />
+                              <CalendarEventLink key={event.id} event={event} caseRow={event.caseId ? casesById.get(event.caseId) : undefined} />
                             ))}
                           </div>
                         </td>
@@ -247,14 +247,18 @@ export default async function CalendarPage({ searchParams }: Props) {
 
 function CalendarEventLink({ event, caseRow }: { event: CalendarEvent; caseRow?: CaseRecord }) {
   return (
-    <Link href={`/cases/${event.caseId}?tab=site-visits`} className={`calendar-event calendar-event-${event.status}`}>
+    <CalendarEventEditTrigger
+      event={event}
+      ariaLabel={`${event.title}の詳細を開く`}
+      className={`calendar-event calendar-event-${event.status}`}
+    >
       <span className="calendar-event-topline">
         <span className="calendar-event-time">{formatTimeRange(event)}</span>
         <span className="calendar-event-status">{calendarEventStatusLabels[event.status]}</span>
       </span>
       <span className="calendar-event-title">{event.title}</span>
-      <span className="calendar-event-user">{caseRow?.jutakuNo ?? '案件未設定'} / {calendarEventTypeLabels[event.type]}</span>
-    </Link>
+      <span className="calendar-event-user">{caseRow?.jutakuNo ?? '案件なし'} / {calendarEventTypeLabels[event.type]}</span>
+    </CalendarEventEditTrigger>
   );
 }
 

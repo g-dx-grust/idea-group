@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
+import { get, put } from '@vercel/blob';
 import { calculateRewardDetailAmount, calculateRewardTotals } from './rewards';
 import {
   businessTypes,
@@ -30,6 +31,42 @@ import {
 } from './types';
 
 const storePath = path.join(process.cwd(), 'data', 'idea-store.json');
+const blobPathname = 'idea-store.json';
+
+function useBlobStore() {
+  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+}
+
+async function loadFromBlob(): Promise<IdeaStore | null> {
+  try {
+    const result = await get(blobPathname, { access: 'private', useCache: false });
+    if (!result || result.statusCode !== 200) return null;
+    const text = await new Response(result.stream).text();
+    return JSON.parse(text) as IdeaStore;
+  } catch (error) {
+    console.error('Failed to load store from Vercel Blob.', error);
+    return null;
+  }
+}
+
+async function saveToBlob(store: IdeaStore) {
+  await put(blobPathname, `${JSON.stringify(store, null, 2)}\n`, {
+    access: 'private',
+    contentType: 'application/json',
+    addRandomSuffix: false,
+    allowOverwrite: true,
+    cacheControlMaxAge: 0,
+  });
+}
+
+async function loadFromFileOrSeed(): Promise<IdeaStore> {
+  try {
+    const raw = await readFile(storePath, 'utf8');
+    return normalizeStore(JSON.parse(raw) as IdeaStore);
+  } catch {
+    return createSeedStore();
+  }
+}
 
 export async function getStore() {
   return loadStore();
@@ -111,7 +148,7 @@ export async function listCalendarEvents(filters: { startDate: string; endDate: 
 }
 
 export async function createCalendarEvent(input: {
-  caseId: string;
+  caseId?: string;
   userId: string;
   type: CalendarEventType;
   status: CalendarEventStatus;
@@ -125,20 +162,20 @@ export async function createCalendarEvent(input: {
   sourceId?: string;
 }) {
   const store = await loadStore();
-  const caseRow = requireCase(store, input.caseId);
+  const caseRow = input.caseId ? requireCase(store, input.caseId) : undefined;
   requireUser(store, input.userId);
   const now = new Date().toISOString();
   const event: CalendarEvent = {
     id: randomUUID(),
-    caseId: input.caseId,
+    caseId: caseRow?.id,
     userId: input.userId,
     type: input.type,
     status: input.status,
-    title: input.title.trim() || caseRow.title,
+    title: input.title.trim() || caseRow?.title || '予定',
     date: input.date,
     startTime: emptyToUndefined(input.startTime),
     endTime: emptyToUndefined(input.endTime),
-    location: emptyToUndefined(input.location) ?? caseRow.address,
+    location: emptyToUndefined(input.location) ?? caseRow?.address,
     note: emptyToUndefined(input.note),
     sourceType: input.sourceType,
     sourceId: emptyToUndefined(input.sourceId),
@@ -146,8 +183,8 @@ export async function createCalendarEvent(input: {
     updatedAt: now,
   };
   store.calendarEvents.unshift(event);
-  touchCase(caseRow);
-  store.auditLogs.unshift(createAudit('calendar_event', event.id, 'create', `${caseRow.jutakuNo}の訪問予定を作成しました。`));
+  if (caseRow) touchCase(caseRow);
+  store.auditLogs.unshift(createAudit('calendar_event', event.id, 'create', `${caseRow?.jutakuNo ?? '案件なし'}の予定を作成しました。`));
   await saveStore(store);
   return event;
 }
@@ -387,6 +424,129 @@ export async function addSiteVisit(caseId: string, input: {
   return siteVisit;
 }
 
+export async function updateSiteVisit(caseId: string, siteVisitId: string, input: {
+  appliedTo: SiteVisitRequest['appliedTo'];
+  appliedToName?: string;
+  surveyorUserId: string;
+  houmuInvestDate?: string;
+  routeNames: string[];
+  landIds: string[];
+  sortMode?: SiteVisitRequest['sortMode'];
+  note?: string;
+}) {
+  const store = await loadStore();
+  const caseRow = requireCase(store, caseId);
+  const siteVisit = caseRow.siteVisits.find((item) => item.id === siteVisitId);
+  if (!siteVisit) throw new Error('対象の立会申請が見つかりません。');
+  siteVisit.appliedTo = input.appliedTo;
+  siteVisit.appliedToName = emptyToUndefined(input.appliedToName);
+  siteVisit.surveyorUserId = input.surveyorUserId;
+  siteVisit.houmuInvestDate = emptyToUndefined(input.houmuInvestDate);
+  siteVisit.routeNames = input.routeNames.filter(Boolean);
+  siteVisit.landIds = input.landIds;
+  siteVisit.note = emptyToUndefined(input.note);
+  siteVisit.sortMode = input.sortMode ?? siteVisit.sortMode ?? 'input';
+  touchCase(caseRow);
+  store.auditLogs.unshift(createAudit('site_visit', siteVisit.id, 'update', `${caseRow.jutakuNo}の立会申請を更新しました。`));
+  await saveStore(store);
+  return siteVisit;
+}
+
+export async function deleteSiteVisit(caseId: string, siteVisitId: string) {
+  const store = await loadStore();
+  const caseRow = requireCase(store, caseId);
+  const before = caseRow.siteVisits.length;
+  caseRow.siteVisits = caseRow.siteVisits.filter((item) => item.id !== siteVisitId);
+  if (caseRow.siteVisits.length === before) throw new Error('対象の立会申請が見つかりません。');
+  touchCase(caseRow);
+  store.auditLogs.unshift(createAudit('site_visit', siteVisitId, 'delete', `${caseRow.jutakuNo}の立会申請を削除しました。`));
+  await saveStore(store);
+}
+
+export async function deleteLand(caseId: string, landId: string) {
+  const store = await loadStore();
+  const caseRow = requireCase(store, caseId);
+  const before = caseRow.lands.length;
+  caseRow.lands = caseRow.lands.filter((land) => land.id !== landId);
+  if (caseRow.lands.length === before) throw new Error('対象の土地が見つかりません。');
+  for (const visit of caseRow.siteVisits) {
+    visit.landIds = visit.landIds.filter((id) => id !== landId);
+  }
+  touchCase(caseRow);
+  store.auditLogs.unshift(createAudit('land', landId, 'delete', `${caseRow.jutakuNo}の土地を削除しました。`));
+  await saveStore(store);
+}
+
+export async function deleteCase(caseId: string) {
+  const store = await loadStore();
+  const caseRow = requireCase(store, caseId);
+  store.cases = store.cases.filter((item) => item.id !== caseId);
+  store.calendarEvents = store.calendarEvents.filter((event) => event.caseId !== caseId);
+  store.auditLogs.unshift(createAudit('case', caseId, 'delete', `${caseRow.jutakuNo}を削除しました。`));
+  await saveStore(store);
+}
+
+export async function deleteReward(caseId: string, rewardId: string) {
+  const store = await loadStore();
+  const caseRow = requireCase(store, caseId);
+  const before = caseRow.rewards.length;
+  caseRow.rewards = caseRow.rewards.filter((reward) => reward.id !== rewardId);
+  if (caseRow.rewards.length === before) throw new Error('対象の報酬書が見つかりません。');
+  touchCase(caseRow);
+  store.auditLogs.unshift(createAudit('reward', rewardId, 'delete', `${caseRow.jutakuNo}の報酬額計算書を削除しました。`));
+  await saveStore(store);
+}
+
+export async function updateCalendarEvent(eventId: string, input: {
+  caseId?: string;
+  userId: string;
+  type: CalendarEventType;
+  status: CalendarEventStatus;
+  title: string;
+  date: string;
+  startTime?: string;
+  endTime?: string;
+  location?: string;
+  note?: string;
+}) {
+  const store = await loadStore();
+  const event = store.calendarEvents.find((item) => item.id === eventId);
+  if (!event) throw new Error('対象の予定が見つかりません。');
+  requireUser(store, input.userId);
+  if (input.caseId) {
+    requireCase(store, input.caseId);
+    event.caseId = input.caseId;
+  } else {
+    event.caseId = undefined;
+  }
+  event.userId = input.userId;
+  event.type = input.type;
+  event.status = input.status;
+  event.title = input.title.trim() || event.title;
+  event.date = input.date;
+  event.startTime = emptyToUndefined(input.startTime);
+  event.endTime = emptyToUndefined(input.endTime);
+  event.location = emptyToUndefined(input.location);
+  event.note = emptyToUndefined(input.note);
+  event.updatedAt = new Date().toISOString();
+  const caseRow = event.caseId ? store.cases.find((item) => item.id === event.caseId) : undefined;
+  if (caseRow) touchCase(caseRow);
+  store.auditLogs.unshift(createAudit('calendar_event', eventId, 'update', `${caseRow?.jutakuNo ?? '案件なし'}の予定を更新しました。`));
+  await saveStore(store);
+  return event;
+}
+
+export async function deleteCalendarEvent(eventId: string) {
+  const store = await loadStore();
+  const event = store.calendarEvents.find((item) => item.id === eventId);
+  if (!event) throw new Error('対象の予定が見つかりません。');
+  store.calendarEvents = store.calendarEvents.filter((item) => item.id !== eventId);
+  const caseRow = event.caseId ? store.cases.find((item) => item.id === event.caseId) : undefined;
+  if (caseRow) touchCase(caseRow);
+  store.auditLogs.unshift(createAudit('calendar_event', eventId, 'delete', `${caseRow?.jutakuNo ?? '案件なし'}の予定を削除しました。`));
+  await saveStore(store);
+}
+
 export async function saveReward(caseId: string, input: {
   rewardId?: string;
   businessName: string;
@@ -506,6 +666,13 @@ export function isCalendarEventStatus(value: string): value is CalendarEventStat
 }
 
 async function loadStore(): Promise<IdeaStore> {
+  if (useBlobStore()) {
+    const fromBlob = await loadFromBlob();
+    if (fromBlob) return normalizeStore(fromBlob);
+    const initial = await loadFromFileOrSeed();
+    await saveToBlob(initial);
+    return normalizeStore(initial);
+  }
   try {
     const raw = await readFile(storePath, 'utf8');
     return normalizeStore(JSON.parse(raw) as IdeaStore);
@@ -547,6 +714,10 @@ function buildInitialCalendarEvents(store: IdeaStore): CalendarEvent[] {
 }
 
 async function saveStore(store: IdeaStore) {
+  if (useBlobStore()) {
+    await saveToBlob(store);
+    return;
+  }
   await mkdir(path.dirname(storePath), { recursive: true });
   await writeFile(storePath, `${JSON.stringify(store, null, 2)}\n`, 'utf8');
 }

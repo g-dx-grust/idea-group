@@ -605,10 +605,19 @@ textarea:focus-visible {
   font-weight: 500;
   line-height: var(--leading-tight);
   padding: var(--space-s);
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  width: 100%;
 }
 
 .calendar-event:hover {
   background: var(--color-surface);
+}
+
+.calendar-event:focus-visible {
+  outline: 2px solid var(--color-main);
+  outline-offset: 1px;
 }
 
 .calendar-event-topline {

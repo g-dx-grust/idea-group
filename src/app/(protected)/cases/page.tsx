@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { Download, Plus, Search, X } from 'lucide-react';
 import { BusinessBadges } from '@/components/cases/BusinessBadges';
 import { StatusBadge } from '@/components/cases/StatusBadge';
+import { DeleteButton } from '@/components/ui/DeleteButton';
+import { deleteCaseAction } from '@/lib/actions';
 import { businessTypeLabels, statusLabels } from '@/lib/labels';
 import { getStore, isBusinessType, isCaseStatus, listCases } from '@/lib/store';
 import { businessTypes, caseStatuses, type CaseListFilters } from '@/lib/types';
@@ -100,6 +102,7 @@ export default async function CasesPage({ searchParams }: Props) {
                 <th>業務区分</th>
                 <th>状態</th>
                 <th>更新日</th>
+                <th>操作</th>
               </tr>
             </thead>
             <tbody>
@@ -129,12 +132,19 @@ export default async function CasesPage({ searchParams }: Props) {
                       <StatusBadge status={caseRow.status} />
                     </td>
                     <td className="mono">{formatDate(caseRow.updatedAt)}</td>
+                    <td>
+                      <DeleteButton
+                        action={deleteCaseAction.bind(null, caseRow.id)}
+                        confirmMessage={`現場 ${caseRow.jutakuNo} を削除します。土地・立会申請・報酬書・予定もすべて削除されます。よろしいですか？`}
+                        label="削除する"
+                      />
+                    </td>
                   </tr>
                 );
               })}
               {cases.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="muted text-center">
+                  <td colSpan={9} className="muted text-center">
                     条件に一致する現場はありません。
                   </td>
                 </tr>

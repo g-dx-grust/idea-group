@@ -7,8 +7,15 @@ import {
   createCalendarEvent,
   addLand,
   updateLand,
+  deleteLand,
   addSiteVisit,
+  updateSiteVisit,
+  deleteSiteVisit,
   createCase,
+  deleteCase,
+  deleteReward,
+  deleteCalendarEvent,
+  updateCalendarEvent,
   isCalendarEventStatus,
   isCalendarEventType,
   isBusinessType,
@@ -123,6 +130,66 @@ export async function addSiteVisitAction(caseId: string, formData: FormData) {
   revalidatePath(`/cases/${caseId}`);
 }
 
+export async function updateSiteVisitAction(caseId: string, siteVisitId: string, formData: FormData) {
+  const appliedTo = String(formData.get('appliedTo') ?? 'nagoya_city') as SiteVisitRequest['appliedTo'];
+  await updateSiteVisit(caseId, siteVisitId, {
+    appliedTo,
+    appliedToName: stringValue(formData, 'appliedToName'),
+    surveyorUserId: requiredString(formData, 'surveyorUserId'),
+    houmuInvestDate: stringValue(formData, 'houmuInvestDate'),
+    routeNames: ['route1', 'route2', 'route3', 'route4'].map((key) => stringValue(formData, key) ?? ''),
+    landIds: formData.getAll('landIds').map(String),
+    sortMode: readSiteVisitSortMode(formData),
+    note: stringValue(formData, 'note'),
+  });
+  revalidatePath(`/cases/${caseId}`);
+}
+
+export async function deleteSiteVisitAction(caseId: string, siteVisitId: string) {
+  await deleteSiteVisit(caseId, siteVisitId);
+  revalidatePath(`/cases/${caseId}`);
+}
+
+export async function deleteLandAction(caseId: string, landId: string) {
+  await deleteLand(caseId, landId);
+  revalidatePath(`/cases/${caseId}`);
+}
+
+export async function deleteCaseAction(caseId: string) {
+  await deleteCase(caseId);
+  revalidatePath('/cases');
+  redirect('/cases');
+}
+
+export async function deleteRewardAction(caseId: string, rewardId: string) {
+  await deleteReward(caseId, rewardId);
+  revalidatePath(`/cases/${caseId}`);
+}
+
+export async function updateCalendarEventAction(eventId: string, formData: FormData) {
+  const caseId = stringValue(formData, 'caseId');
+  await updateCalendarEvent(eventId, {
+    caseId,
+    userId: requiredString(formData, 'userId'),
+    type: readCalendarEventType(formData),
+    status: readCalendarEventStatus(formData),
+    title: stringValue(formData, 'title') ?? '訪問予定',
+    date: requiredString(formData, 'date'),
+    startTime: stringValue(formData, 'startTime'),
+    endTime: stringValue(formData, 'endTime'),
+    location: stringValue(formData, 'location'),
+    note: stringValue(formData, 'note'),
+  });
+  if (caseId) revalidatePath(`/cases/${caseId}`);
+  revalidatePath('/calendar');
+}
+
+export async function deleteCalendarEventAction(eventId: string, caseId?: string) {
+  await deleteCalendarEvent(eventId);
+  if (caseId) revalidatePath(`/cases/${caseId}`);
+  revalidatePath('/calendar');
+}
+
 export async function addCaseCalendarEventAction(caseId: string, formData: FormData) {
   await createCalendarEvent({
     caseId,
@@ -142,13 +209,13 @@ export async function addCaseCalendarEventAction(caseId: string, formData: FormD
 }
 
 export async function addCalendarEventAction(formData: FormData) {
-  const caseId = requiredString(formData, 'caseId');
+  const caseId = stringValue(formData, 'caseId');
   await createCalendarEvent({
     caseId,
     userId: requiredString(formData, 'userId'),
     type: readCalendarEventType(formData),
     status: readCalendarEventStatus(formData),
-    title: stringValue(formData, 'title') ?? '訪問予定',
+    title: stringValue(formData, 'title') ?? '予定',
     date: requiredString(formData, 'date'),
     startTime: stringValue(formData, 'startTime'),
     endTime: stringValue(formData, 'endTime'),
@@ -157,7 +224,7 @@ export async function addCalendarEventAction(formData: FormData) {
     sourceType: 'calendar',
   });
   revalidatePath('/calendar');
-  revalidatePath(`/cases/${caseId}`);
+  if (caseId) revalidatePath(`/cases/${caseId}`);
 }
 
 export async function saveRewardAction(caseId: string, formData: FormData) {

@@ -159,7 +159,7 @@ export interface RewardRecord extends RewardTotals {
 
 export interface CalendarEvent {
   id: string;
-  caseId: string;
+  caseId?: string;
   userId: string;
   type: CalendarEventType;
   status: CalendarEventStatus;
